@@ -1,8 +1,9 @@
 # Generated images
 generated_images/
 
-# Reference images
-reference_images/
+# Reference images (ignore all except the character reference)
+reference_images/*
+!reference_images/1772683359ead2.png
 
 # Python
 __pycache__/

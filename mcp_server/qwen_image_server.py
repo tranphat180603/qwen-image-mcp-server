@@ -17,21 +17,47 @@ from fastmcp.tools import ToolResult
 # Load environment variables
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
+# Path to reference character image
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+REFERENCE_IMAGE_PATH = PROJECT_ROOT / "reference_images" / "1772683359ead2.png"
+
+
+def load_reference_image() -> str:
+    """Load the reference image and return as base64 data URL."""
+    with open(REFERENCE_IMAGE_PATH, "rb") as f:
+        image_data = f.read()
+
+    base64_data = base64.b64encode(image_data).decode("utf-8")
+    return f"data:image/png;base64,{base64_data}"
+
+
 mcp = FastMCP(
     name="Qwen Image Generator",
-    instructions="Generate images using Qwen Image 2.0 model",
+    instructions="Generate images using Qwen Image 2.0 model with a reference character",
 )
 
 QWEN_MODEL = "qwen-image-2.0"
+
+# Pre-load reference image at startup
+REFERENCE_IMAGE_URL = load_reference_image()
 
 
 @mcp.tool
 def generate_image(prompt: str) -> ToolResult:
     """
-    Generate an image using Qwen Image 2.0 model.
+    Generate an image with a reference character (a girl) using Qwen Image 2.0.
+
+    A reference image of a girl is already provided. Do NOT describe her general
+    appearance or identity. Only describe:
+    - Setting/background (e.g., "in a coffee shop", "on a beach at sunset")
+    - Outfit/clothing (e.g., "wearing a red dress", "in casual streetwear")
+    - Expression/pose (e.g., "smiling warmly", "looking thoughtful")
+    - Lighting/mood (e.g., "soft golden hour lighting", "neon city lights")
+    - Activity (e.g., "reading a book", "holding a coffee cup")
 
     Args:
-        prompt: The text description of the image to generate.
+        prompt: Description of setting, outfit, expression, mood, and activity.
+                Do not describe the character's face or body features.
 
     Returns:
         The generated image as base64-encoded PNG.
@@ -42,13 +68,19 @@ def generate_image(prompt: str) -> ToolResult:
             content=[types.TextContent(type="text", text="Error: DASHSCOPE_API_KEY not set")]
         )
 
+    # Build content with reference image + text prompt
+    content_items = [
+        {"image": REFERENCE_IMAGE_URL},
+        {"text": prompt},
+    ]
+
     payload = {
         "model": QWEN_MODEL,
         "input": {
             "messages": [
                 {
                     "role": "user",
-                    "content": [{"text": prompt}],
+                    "content": content_items,
                 }
             ]
         },

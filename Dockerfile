@@ -6,9 +6,9 @@ WORKDIR /app
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy MCP server
+# Copy MCP server and reference images
 COPY mcp_server/ ./mcp_server/
-COPY .env.example ./.env.example
+COPY reference_images/ ./reference_images/
 
 # Railway sets PORT env var
 ENV PORT=8000
