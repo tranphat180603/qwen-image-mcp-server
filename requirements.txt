@@ -1,0 +1,5 @@
+# Install latest versions
+openai
+python-dotenv
+gradio
+fastmcp

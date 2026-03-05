@@ -1,0 +1,19 @@
+# Generated images
+generated_images/
+
+# Reference images
+reference_images/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+.venv/
+venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
