@@ -43,7 +43,7 @@ REFERENCE_IMAGE_URL = load_reference_image()
 
 
 @mcp.tool
-def generate_image(prompt: str) -> ToolResult:
+def generate_image(prompt: str, api_key: str) -> ToolResult:
     """
     Generate an image with a reference character (a girl) using Qwen Image 2.0.
 
@@ -58,12 +58,25 @@ def generate_image(prompt: str) -> ToolResult:
     Args:
         prompt: Description of setting, outfit, expression, mood, and activity.
                 Do not describe the character's face or body features.
+        api_key: Your API key for authentication.
 
     Returns:
         The generated image as base64-encoded PNG.
     """
-    api_key = os.getenv("DASHSCOPE_API_KEY")
-    if not api_key:
+    # Validate client API key
+    server_api_key = os.getenv("QWEN_IMAGE_MCP_API_KEY")
+    if not server_api_key:
+        return ToolResult(
+            content=[types.TextContent(type="text", text="Error: Server API key not configured")]
+        )
+
+    if api_key != server_api_key:
+        return ToolResult(
+            content=[types.TextContent(type="text", text="Error: Invalid API key")]
+        )
+
+    dashscope_key = os.getenv("DASHSCOPE_API_KEY")
+    if not dashscope_key:
         return ToolResult(
             content=[types.TextContent(type="text", text="Error: DASHSCOPE_API_KEY not set")]
         )
@@ -95,7 +108,7 @@ def generate_image(prompt: str) -> ToolResult:
 
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_key}",
+        "Authorization": f"Bearer {dashscope_key}",
     }
 
     url = "https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation"
