@@ -8,11 +8,19 @@ import os
 import json
 import base64
 import urllib.request
+import logging
 from pathlib import Path
 from dotenv import load_dotenv
 from mcp import types
 from fastmcp import FastMCP
 from fastmcp.tools import ToolResult
+
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
@@ -62,6 +70,8 @@ def generate_image(prompt: str) -> ToolResult:
     Returns:
         The generated image as base64-encoded PNG.
     """
+    logger.info(f"Tool called: generate_image | Prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}")
+
     api_key = os.getenv("DASHSCOPE_API_KEY")
     if not api_key:
         return ToolResult(
@@ -136,11 +146,13 @@ def generate_image(prompt: str) -> ToolResult:
 
         b64_data = base64.b64encode(img_bytes).decode()
 
+        logger.info(f"Tool completed: generate_image | Success")
         return ToolResult(
             content=[types.ImageContent(type="image", data=b64_data, mimeType="image/png")]
         )
 
     except Exception as e:
+        logger.error(f"Tool failed: generate_image | Error: {str(e)}")
         return ToolResult(
             content=[types.TextContent(type="text", text=f"Error: {str(e)}")]
         )
